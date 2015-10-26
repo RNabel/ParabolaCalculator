@@ -11,6 +11,12 @@ import java.util.stream.Collectors;
  * Class able to hold a basic polynomial equation and differentiate it.
  */
 public class Equation {
+    private static ScriptEngineManager mgr = new ScriptEngineManager();
+    private static ScriptEngine ENGINE = mgr.getEngineByName("JavaScript");
+
+    private static String WHITES_PUNCT_REGEX = "[\\(\\) \\*\\+\\-\\^,]";
+    private static String WHITE_PUNCT_GROUP = "(^|" + WHITES_PUNCT_REGEX + "|$)";
+    private static String C_IDENTIFIER_REGEX = "(?!(Math))([_a-zA-Z][_a-zA-Z0-9]{0,30})";
 
     private List<EquationPart> parts = new ArrayList<>();
     private List<TermConnector> connectors = new ArrayList<>();
@@ -40,11 +46,12 @@ public class Equation {
         }
 
         public static EquationPart differentiateEquationPart(EquationPart part) {
-            double coefficientA = part.a * part.b;
-            double exponentB = part.b - 1;
-            if (exponentB < 0) {
+            if (part.b == 0) { // Term will disappear.
                 return null;
             }
+
+            double coefficientA = part.a * part.b;
+            double exponentB = part.b - 1;
             return new EquationPart(part.name, coefficientA, exponentB);
         }
 
@@ -62,18 +69,18 @@ public class Equation {
             }
 
             // Only print exponent if not 1.
-            if (b != 0) {
+            if (b != 0 && b != 1) {
+                output += "Math.pow(" + this.name + ", " + this.b + ")";
+
+            } else if (b != 0) {
                 output += this.name;
-                if (b != 1) {
-                    output += "^" + this.b;
-                }
             }
             return output;
         }
 
         // Helpers.
         private boolean printVariableName(double b) {
-            return b!=0;
+            return b != 0;
         }
 
         public double getA() {
@@ -90,6 +97,14 @@ public class Equation {
 
         public void setB(double b) {
             this.b = b;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 
@@ -159,29 +174,34 @@ public class Equation {
     }
 
     public String createJsExpression(Map<String, Double> nameMapping) {
-        // TODO create string.
-        // If input is string
-        // TODO
-        // Else input is map
-        // TODO
+        String formula = this.toString();
 
-        return this.toString();
+        for (String key : nameMapping.keySet()) {
+            Double val = nameMapping.get(key);
+            formula = formula.replaceAll(WHITE_PUNCT_GROUP + "(" + key + ")" + WHITE_PUNCT_GROUP, "$1" + val + "$3");
+        }
+
+        return formula;
+    }
+
+    public String createJsExpression(double value) {
+        String formula = this.toString();
+        formula = formula.replaceAll(WHITE_PUNCT_GROUP + C_IDENTIFIER_REGEX + WHITE_PUNCT_GROUP, "$1" + value + "$4");
+        return formula;
     }
 
     public static double evaluate(String formula) throws ScriptException {
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("JavaScript");
-        return (double) engine.eval(formula);
+        String result = ENGINE.eval(formula).toString();
+        return Double.parseDouble(result);
     }
 
     public double evaluate(Map<String, Double> nameMapping) throws ScriptException {
         return evaluate(this.createJsExpression(nameMapping));
     }
 
-//    public double evaluate(double oneVar) throws ScriptException {
-//
-//        return evaluate(this.createJsExpression(nameMapping))
-//    }
+    public double evaluate(double oneVar) throws ScriptException {
+        return evaluate(createJsExpression(oneVar));
+    }
 
     public static Equation differentiateEquation(Equation input) {
         // Differentiate all parts.
@@ -200,10 +220,13 @@ public class Equation {
         for (int i = 1; i < eParts.size(); i++) {
             // Invert connecting sign if coefficient is negative
             if (eParts.get(i).a < 0) {
-                TermConnector currentConnector = (TermConnector) connectors.get(i);
+                TermConnector currentConnector = (TermConnector) connectors.get(i-1);
                 // Update the connector.
                 TermConnector newConnector = TermConnector.invertSign(currentConnector);
-                connectors.set(i, newConnector);
+                connectors.set(i-1, newConnector);
+
+                // Update the coefficient of the part.
+                eParts.get(i).setA(eParts.get(i).a * -1);
             }
         }
 
@@ -214,21 +237,23 @@ public class Equation {
     public String toString() {
         String output = "";
 
-        // Print first element.
-        output += parts.get(0).toString();
+        if (parts.size() > 0) {
+            // Print first element.
+            output += parts.get(0).toString();
 
-        int connectorIndex = 0;
-        boolean firstIter = true;
-        for (EquationPart part : parts) {
-            if (firstIter) {
-                firstIter = false;
-                continue;
+            int connectorIndex = 0;
+            boolean firstIter = true;
+            for (EquationPart part : parts) {
+                if (firstIter) {
+                    firstIter = false;
+                    continue;
+                }
+                // Print connector.
+                output += " " + connectors.get(connectorIndex++).toString() + " ";
+
+                // Print part.
+                output += part.toString();
             }
-            // Print connector.
-            output += " " + connectors.get(connectorIndex++).toString() + " ";
-
-            // Print part.
-            output += part.toString();
         }
 
         return output;

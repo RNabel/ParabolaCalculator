@@ -1,8 +1,6 @@
 import javax.script.ScriptException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by rn30 on 25/10/2015.
@@ -20,50 +18,47 @@ public class ParabolaCalculator {
 
         double[] xInterval = new double[]{A[0], C[0]};
 
-        // Calculate P(x) of both beginning and end.
-        Map<String, Double> valueMap = new HashMap<>();
-        valueMap.put("x", xInterval[0]);
-        double pStart = 0;
-        double pEnd = 0;
+        // Calculate distance using: http://math.stackexchange.com/questions/390080/definite-integral-of-square-root-of-polynomial
 
+        // Differentiate equation.
+        Equation firstDiffEq = Equation.differentiateEquation(equation);
+        Equation secondDiffEq = Equation.differentiateEquation(firstDiffEq);
+
+        double yDoubleDash = secondDiffEq.getParts(0).getA();
+
+        // Calculate 1/2 sinh-1 (yDash)
+        double startYDash = 0;
+        double endYDash = 0;
         try {
-            pStart = equation.evaluate(valueMap);
-            valueMap.put("x", xInterval[0]);
-
-            pEnd = equation.evaluate(valueMap);
+            startYDash = firstDiffEq.evaluate(xInterval[0]);
+            endYDash = firstDiffEq.evaluate(xInterval[1]);
         } catch (ScriptException e) {
             e.printStackTrace();
         }
 
-        // Calculate distance using: http://math.stackexchange.com/questions/390080/definite-integral-of-square-root-of-polynomial
+        double part1 = calculateIntegral(yDoubleDash, startYDash);
+        double part2 = calculateIntegral(yDoubleDash, endYDash);
 
-        // Differentiate equation.
-        Equation diffEq = Equation.differentiateEquation(equation);
-
-        // Factor out the x coefficient.
-        Equation.EquationPart firstPart = diffEq.getParts(0);
-        Equation.EquationPart secondPart = diffEq.getParts(1);
-        double xCoeff = diffEq.getParts(0).a;
-
-        if (xCoeff == -1) { // multiply both parts with -1;
-            firstPart.setA(xCoeff * -1);
-            secondPart.setA(secondPart.getA() * -1);
-        } else {
-            firstPart.setA(1);
-            secondPart.setA(secondPart.getA() / xCoeff);
-        }
-
-        double sqrtA = Math.sqrt(xCoeff);
-
-        double b1 = secondPart.getB();
-        double c1 = 1;
-
-        double pOfX; // TODO finish.
-
-        return 0.0;
+        return part2 - part1;
     }
 
     // Arc Length helpers.
+    protected static double calculateIntegral(double yDoubleDash, double yDash) {
+        double part1FirstTerm = getFirstPart(yDash);
+        double part1SecondTerm = getSecondPart(yDash);
+        return (1 / yDoubleDash) * (part1FirstTerm + part1SecondTerm);
+    }
+
+    // 0.5 * sinh-1 (yDash)
+    // 0.5 * ln (yDash + sqrt ( 1 + yDash ^ 2 ) )
+    protected static double getFirstPart( double yDash) {
+        return 0.5 * Math.log(yDash + Math.sqrt(1 + yDash * yDash));
+    }
+
+    protected static double getSecondPart(double yDash) {
+        return 0.5 * yDash * Math.sqrt(1 + yDash * yDash);
+    }
+
     protected static Equation createEquationFromParabolaCoefficients(double[] A, double[] B, double[] C) {
         // Calculate the parabola coefficients
         int[][] coeffs = getParabolaCoefficients(A, B, C);
@@ -91,16 +86,6 @@ public class ParabolaCalculator {
             Equation equation = new Equation(partList, connectors);
             return equation;
         }
-    }
-
-    protected static double calculateIntegral(double b1, double c1, double x, Equation pOfX) {
-//        pOfX.evaluate(x);
-//        double firstPart = getFirstPart(b1, x, )
-        return 0.0;
-    }
-
-    protected static double getFirstPart(double b1, double x, double pOfX) {
-        return (b1 + x) * pOfX;
     }
 
     public static int[][] getParabolaCoefficients(double[] A, double[] B, double[] C) {
@@ -146,6 +131,8 @@ public class ParabolaCalculator {
             return null;
         }
     }
+
+
 
     // TODO what the hell does this do?
     public static int[] determinant(int[] a, int[] b, int[] c, int[] d) {
