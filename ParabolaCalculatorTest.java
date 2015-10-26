@@ -1,8 +1,6 @@
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -148,53 +146,6 @@ public class ParabolaCalculatorTest {
 
         String formula = equation.toString();
         assertTrue(formula.equals("-0.5*Math.pow(x, 2.0) + 1.5*x + -0.0"));
-    }
-
-    @Test
-    public void testGetFirstPart() throws Exception {
-        double b1 = -1.5;
-        double x = 1;
-        double sqrtPOfX = 1;
-        fail("Fix");
-//        double result = ParabolaCalculator.getFirstPart(b1, x, sqrtPOfX);
-//        assertTrue(result == -0.5);
-    }
-
-    @Test
-    public void testGetSecondPart() throws Exception {
-        double b1 = -1.5;
-        double c1 = 1.0;
-        double x = 1;
-        double sqrtPOfX = 1;
-        fail("FIX");
-//        double result = ParabolaCalculator.getSecondPart(c1, b1, x, sqrtPOfX);
-//        assertEquals(-0.69315, result, 0.001);
-
-    }
-
-    @Test
-    public void testCalculateIntegral() throws Exception {
-        double b1 = -1.5;
-        double x;
-        double sqrtPOfX = 1;
-
-        // f(x) = -x + 1.5
-        List<Object> connectors = new ArrayList<>();
-        connectors.add("+");
-
-        List<Equation.EquationPart> partList = new ArrayList<>();
-        partList.add(new Equation.EquationPart("x", -0.5, 2));
-        partList.add(new Equation.EquationPart("x", 1.5));
-        Equation diffEq = new Equation(partList, connectors);
-
-        x = 2;
-        fail("FIX");
-//        double result = ParabolaCalculator.calculateIntegral(b1, x, diffEq);
-//        assertEquals(0.4527, result, 0.001);
-
-        x = 1;
-//        result = ParabolaCalculator.calculateIntegral(b1, x, diffEq);
-//        assertEquals(-0.597, result, 0.001);
     }
 
     @Test

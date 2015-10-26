@@ -13,6 +13,7 @@ public class ParabolaCalculator {
     // Calculates Arc length between 2 points on a parabola.
     // Takes: 3 points, to calculate the parabola.
     // Returns: The distance between the first and last point.
+    // Uses substitution of the first differential with sinh(t).
     public static double getArcDistance(double[] A, double[] B, double[] C) {
         Equation equation = createEquationFromParabolaCoefficients(A, B, C);
 
@@ -42,16 +43,17 @@ public class ParabolaCalculator {
         return part2 - part1;
     }
 
-    // Arc Length helpers.
+    // --- Arc Length helpers. ---
     protected static double calculateIntegral(double yDoubleDash, double yDash) {
         double part1FirstTerm = getFirstPart(yDash);
         double part1SecondTerm = getSecondPart(yDash);
         return (1 / yDoubleDash) * (part1FirstTerm + part1SecondTerm);
     }
 
+    // Calculates the equations below.
     // 0.5 * sinh-1 (yDash)
     // 0.5 * ln (yDash + sqrt ( 1 + yDash ^ 2 ) )
-    protected static double getFirstPart( double yDash) {
+    protected static double getFirstPart(double yDash) {
         return 0.5 * Math.log(yDash + Math.sqrt(1 + yDash * yDash));
     }
 
@@ -83,11 +85,13 @@ public class ParabolaCalculator {
             connectors.add("+");
             connectors.add("+");
 
-            Equation equation = new Equation(partList, connectors);
-            return equation;
+            return new Equation(partList, connectors);
         }
     }
 
+    // --- End of Arc helper methods. ---
+
+    // --- Helper methods for parabola coefficient calculation. ---
     public static int[][] getParabolaCoefficients(double[] A, double[] B, double[] C) {
 
         int[] ax = constructFraction(A[0]);
@@ -125,19 +129,14 @@ public class ParabolaCalculator {
             int[] coefc = subtractFractions(cc2, multiplyFractions(coefb, ax));
 
             // Display equation of the form y = a x^2 + b x + c
-            int[][] outputArr = new int[][]{coefa, coefb, coefc};
-            return outputArr;
+            return new int[][]{coefa, coefb, coefc};
         } else {
             return null;
         }
     }
 
-
-
-    // TODO what the hell does this do?
     public static int[] determinant(int[] a, int[] b, int[] c, int[] d) {
-        int[] deter = subtractFractions(multiplyFractions(a, d), multiplyFractions(b, c));
-        return deter;
+        return subtractFractions(multiplyFractions(a, d), multiplyFractions(b, c));
     }
 
     public static int[] constructFraction(double x) {

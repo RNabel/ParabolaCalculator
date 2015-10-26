@@ -5,7 +5,8 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
- * Created by rn30 on 25/10/2015.
+ * Created by Robin Nabel on 25/10/2015.
+ *
  */
 public class EquationTest {
     @Test
@@ -221,6 +222,6 @@ public class EquationTest {
         valMap.put("y", 10.0);
         double output = test.evaluate(valMap);
 
-        assertTrue(output == 5432); //TODO
+        assertTrue(output == 5432);
     }
 }

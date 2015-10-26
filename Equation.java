@@ -16,7 +16,6 @@ public class Equation {
 
     private static String WHITES_PUNCT_REGEX = "[\\(\\) \\*\\+\\-\\^,]";
     private static String WHITE_PUNCT_GROUP = "(^|" + WHITES_PUNCT_REGEX + "|$)";
-    private static String C_IDENTIFIER_REGEX = "(?!(Math))([_a-zA-Z][_a-zA-Z0-9]{0,30})";
 
     private List<EquationPart> parts = new ArrayList<>();
     private List<TermConnector> connectors = new ArrayList<>();
@@ -103,7 +102,7 @@ public class Equation {
             return name;
         }
 
-        public void setName(String name) {
+        public void setName(@SuppressWarnings("SameParameterValue") String name) {
             this.name = name;
         }
     }
@@ -186,7 +185,8 @@ public class Equation {
 
     public String createJsExpression(double value) {
         String formula = this.toString();
-        formula = formula.replaceAll(WHITE_PUNCT_GROUP + C_IDENTIFIER_REGEX + WHITE_PUNCT_GROUP, "$1" + value + "$4");
+        String c_IDENTIFIER_REGEX = "(?!(Math))([_a-zA-Z][_a-zA-Z0-9]{0,30})";
+        formula = formula.replaceAll(WHITE_PUNCT_GROUP + c_IDENTIFIER_REGEX + WHITE_PUNCT_GROUP, "$1" + value + "$4");
         return formula;
     }
 
